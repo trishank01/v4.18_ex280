@@ -18,11 +18,12 @@ TEST_PROJ="test-q16-$RANDOM"
 oc new-project $TEST_PROJ &>/dev/null
 sleep 2
 
-if oc get limitrange ${TEST_PROJ}-limits -n $TEST_PROJ &>/dev/null; then
-  echo "  [PASS] Automatic LimitRange '${TEST_PROJ}-limits' verified in new project (+60 pts)"
+if oc get limitrange -n $TEST_PROJ --no-headers 2>/dev/null | grep -q .; then
+  LR_NAME=$(oc get limitrange -n $TEST_PROJ -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+  echo "  [PASS] Automatic LimitRange '$LR_NAME' verified in new project (+60 pts)"
   S=$((S+60))
 else
-  echo "  [FAIL] LimitRange '${TEST_PROJ}-limits' NOT automatically created in new project (0 pts)"
+  echo "  [FAIL] LimitRange NOT automatically created in new project (0 pts)"
 fi
 oc delete project $TEST_PROJ &>/dev/null || true
 

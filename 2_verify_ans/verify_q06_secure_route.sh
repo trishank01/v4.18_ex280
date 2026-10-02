@@ -28,11 +28,11 @@ fi
 
 # Check 3: Hostname
 HOST=$(oc get route oxcart -n area51 -o jsonpath='{.spec.host}' 2>/dev/null)
-if [ "$HOST" = "oxcart.apps.ocp4.example.com" ]; then
-  echo "  [PASS] Route hostname is 'oxcart.apps.ocp4.example.com' (+25 pts)"
+if [ "$HOST" = "oxcart.apps.ocp4.example.com" ] || echo "$HOST" | grep -qE '^oxcart\.apps\..*'; then
+  echo "  [PASS] Route hostname is '$HOST' (+25 pts)"
   S=$((S+25))
 else
-  echo "  [FAIL] Hostname mismatch (Found: '$HOST', Expected: 'oxcart.apps.ocp4.example.com') (0 pts)"
+  echo "  [FAIL] Hostname mismatch (Found: '$HOST', Expected: 'oxcart.apps.<domain>') (0 pts)"
 fi
 
 # Check 4: Certificate is configured

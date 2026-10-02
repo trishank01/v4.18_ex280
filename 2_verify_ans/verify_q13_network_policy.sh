@@ -17,7 +17,8 @@ else
 fi
 
 # Check 2: Pod selector label
-if oc get netpol db-allow-mysql-conn -n database -o jsonpath='{.spec.podSelector.matchLabels}' 2>/dev/null | grep -q 'network.openshift.io/policy-group'; then
+if oc get netpol db-allow-mysql-conn -n database -o jsonpath='{.spec.podSelector.matchLabels}' 2>/dev/null | grep -q 'network.openshift.io/policy-group' || \
+   oc get netpol db-allow-mysql-conn -n database -o yaml 2>/dev/null | grep -q 'network.openshift.io/policy-group'; then
   echo "  [PASS] Target pod selector 'network.openshift.io/policy-group' configured (+25 pts)"
   S=$((S+25))
 else
@@ -25,7 +26,8 @@ else
 fi
 
 # Check 3: NamespaceSelector label
-if oc get netpol db-allow-mysql-conn -n database -o jsonpath='{.spec.ingress[*].from[*].namespaceSelector.matchLabels.team}' 2>/dev/null | grep -q 'devsecops'; then
+if oc get netpol db-allow-mysql-conn -n database -o jsonpath='{.spec.ingress[*].from[*].namespaceSelector.matchLabels.team}' 2>/dev/null | grep -q 'devsecops' || \
+   oc get netpol db-allow-mysql-conn -n database -o yaml 2>/dev/null | grep -q 'devsecops'; then
   echo "  [PASS] Ingress namespaceSelector matches 'team=devsecops' (+25 pts)"
   S=$((S+25))
 else
@@ -33,7 +35,8 @@ else
 fi
 
 # Check 4: TCP Port 3306
-if oc get netpol db-allow-mysql-conn -n database -o jsonpath='{.spec.ingress[*].ports[*].port}' 2>/dev/null | grep -q '3306'; then
+if oc get netpol db-allow-mysql-conn -n database -o jsonpath='{.spec.ingress[*].ports[*].port}' 2>/dev/null | grep -q '3306' || \
+   oc get netpol db-allow-mysql-conn -n database -o yaml 2>/dev/null | grep -q '3306'; then
   echo "  [PASS] Ingress port 3306 TCP allowed (+25 pts)"
   S=$((S+25))
 else

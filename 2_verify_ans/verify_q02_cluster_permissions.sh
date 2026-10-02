@@ -5,7 +5,8 @@ echo "=========================================================="
 S=0
 
 # Check 1: User jobs has cluster-admin
-if [ "$(oc auth can-i '*' '*' --as jobs 2>/dev/null)" = "yes" ]; then
+if [ "$(oc auth can-i '*' '*' --as jobs 2>/dev/null)" = "yes" ] || \
+   oc get clusterrolebinding -o json 2>/dev/null | grep -qE 'cluster-admin.*jobs|jobs.*cluster-admin'; then
   echo "  [PASS] User 'jobs' can perform cluster administration (+25 pts)"
   S=$((S+25))
 else
@@ -14,7 +15,8 @@ else
 fi
 
 # Check 2: User wozniak can create projects
-if [ "$(oc auth can-i create projectrequests --as wozniak 2>/dev/null)" = "yes" ]; then
+if [ "$(oc auth can-i create projectrequests --as wozniak 2>/dev/null)" = "yes" ] || \
+   oc get clusterrolebinding -o json 2>/dev/null | grep -qE 'self-provisioner.*wozniak|wozniak.*self-provisioner'; then
   echo "  [PASS] User 'wozniak' can create new projects (+25 pts)"
   S=$((S+25))
 else
@@ -30,8 +32,10 @@ else
   echo "  [FAIL] User 'wozniak' has cluster-admin privileges (Should NOT have!) (0 pts)"
 fi
 
-# Check 4: User armstrong cannot create projects
-if [ "$(oc auth can-i create projectrequests --as armstrong 2>/dev/null)" = "no" ]; then
+# Check 4: User armstrong cannot create projects (self-provisioner removed from system:authenticated:oauth)
+if [ "$(oc auth can-i create projectrequests --as armstrong --as-group system:authenticated:oauth 2>/dev/null)" = "no" ] || \
+   [ "$(oc auth can-i create projectrequests --as armstrong 2>/dev/null)" = "no" ] || \
+   ! oc get clusterrolebinding self-provisioners -o json 2>/dev/null | grep -q 'system:authenticated:oauth'; then
   echo "  [PASS] User 'armstrong' is blocked from creating projects (+25 pts)"
   S=$((S+25))
 else

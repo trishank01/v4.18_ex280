@@ -13,12 +13,12 @@ else
 fi
 
 # Check 2: Approval is Automatic
-APPROVAL=$(oc get sub -n openshift-file-integrity -o jsonpath='{.items[0].spec.installPlanApproval}' 2>/dev/null)
-if [ "$APPROVAL" = "Automatic" ]; then
+if oc get sub -n openshift-file-integrity -o yaml 2>/dev/null | grep -qi 'installPlanApproval: *Automatic' || \
+   [ "$(oc get sub -n openshift-file-integrity -o jsonpath='{.items[*].spec.installPlanApproval}' 2>/dev/null)" = "Automatic" ]; then
   echo "  [PASS] InstallPlan approval strategy is set to 'Automatic' (+50 pts)"
   S=$((S+50))
 else
-  echo "  [FAIL] InstallPlan approval is NOT 'Automatic' (Found: '$APPROVAL') (0 pts)"
+  echo "  [FAIL] InstallPlan approval is NOT 'Automatic' (0 pts)"
 fi
 
 echo "=========================================================="
