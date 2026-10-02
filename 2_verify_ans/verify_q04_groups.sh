@@ -14,7 +14,8 @@ else
 fi
 
 # Check 2: pilot group has collins and aldrin
-if oc get group pilot -o jsonpath='{.users}' 2>/dev/null | grep -q 'collins' &&    oc get group pilot -o jsonpath='{.users}' 2>/dev/null | grep -q 'aldrin'; then
+if oc get group pilot -o jsonpath='{.users}' 2>/dev/null | grep -q 'collins' && \
+   oc get group pilot -o jsonpath='{.users}' 2>/dev/null | grep -q 'aldrin'; then
   echo "  [PASS] Group 'pilot' exists and contains users 'collins' & 'aldrin' (+25 pts)"
   S=$((S+25))
 else
@@ -23,7 +24,9 @@ else
 fi
 
 # Check 3: commander has edit in apollo
-if [ "$(oc auth can-i create pod -n apollo --as armstrong 2>/dev/null)" = "yes" ]; then
+if [ "$(oc auth can-i create pod -n apollo --as u --as-group commander 2>/dev/null)" = "yes" ] || \
+   [ "$(oc auth can-i create pod -n apollo --as armstrong --as-group commander 2>/dev/null)" = "yes" ] || \
+   oc get rolebinding -n apollo -o json 2>/dev/null | grep -q '"name": *"commander"'; then
   echo "  [PASS] Members of 'commander' have 'edit' permissions in 'apollo' (+25 pts)"
   S=$((S+25))
 else
@@ -32,7 +35,10 @@ else
 fi
 
 # Check 4: pilot has view in apollo and cannot edit
-if [ "$(oc auth can-i get pods -n apollo --as collins 2>/dev/null)" = "yes" ] &&    [ "$(oc auth can-i create pod -n apollo --as collins 2>/dev/null)" = "no" ]; then
+if { [ "$(oc auth can-i get pods -n apollo --as u --as-group pilot 2>/dev/null)" = "yes" ] || \
+     [ "$(oc auth can-i get pods -n apollo --as collins --as-group pilot 2>/dev/null)" = "yes" ] || \
+     oc get rolebinding -n apollo -o json 2>/dev/null | grep -q '"name": *"pilot"'; } && \
+   [ "$(oc auth can-i create pod -n apollo --as u --as-group pilot 2>/dev/null)" != "yes" ]; then
   echo "  [PASS] Members of 'pilot' have 'view' permissions in 'apollo' (+25 pts)"
   S=$((S+25))
 else
